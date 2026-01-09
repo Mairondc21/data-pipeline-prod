@@ -1,0 +1,14 @@
+CREATE USER airbyte_user WITH PASSWORD 'postgres';
+ALTER USER airbyte_user REPLICATION;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO airbyte_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO airbyte_user;
+ALTER TABLE public.reviews REPLICA IDENTITY DEFAULT;
+ALTER TABLE public.order_items REPLICA IDENTITY DEFAULT;
+ALTER TABLE public.orders REPLICA IDENTITY DEFAULT;
+ALTER TABLE public.products REPLICA IDENTITY DEFAULT;
+ALTER TABLE public.customers REPLICA IDENTITY DEFAULT;
+GRANT USAGE ON SCHEMA public TO airbyte_user;
+
+CREATE PUBLICATION airbyte_publication FOR ALL TABLES;
+
+SELECT pg_create_logical_replication_slot('airbyte_slot', 'pgoutput');
