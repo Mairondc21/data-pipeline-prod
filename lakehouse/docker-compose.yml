@@ -1,0 +1,29 @@
+services:
+  garage:
+    image: dxflrs/garage:v1.0.0
+    container_name: garage-s3
+    restart: unless-stopped
+    volumes:
+      - ./garage/etc/garage.toml:/etc/garage.toml
+      # Persistência dos dados (metadados e arquivos)
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+    ports:
+      - "3900:3900" # S3 API (Use essa no Airbyte/Spark)
+      - "3902:3902" # Web Server
+      - "3903:3903" # Admin API
+    environment:
+      - RUST_LOG=info
+    networks:
+          - kind
+networks:
+  default:
+    name: kind
+    external: true
+  kind:
+    name: kind
+    external: true
+    
+volumes:
+  garage_meta:
+  garage_data:
