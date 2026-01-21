@@ -52,4 +52,4 @@ df = df.select(
     col("nome")
 )
 
-df.write.mode("overwrite").format("parquet").save("s3a://raw-data/postgres/bronze/customers")
+df.write.mode("append").format("parquet").save("s3a://raw-data/postgres/bronze/customers")

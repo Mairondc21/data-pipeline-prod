@@ -1,8 +1,8 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, length, trim
+from pyspark.sql.functions import col
 
 spark = SparkSession.builder\
-        .appName("bronze products")\
+        .appName("ETL bronze reviews")\
         .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262") \
         .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:3900") \
         .config("spark.hadoop.fs.s3a.access.key", "GK092b24f828f48e9106904881") \
@@ -12,22 +12,21 @@ spark = SparkSession.builder\
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
         .getOrCreate()
 
-tabela = "products"
+tabela = "reviews"
 caminho = f"s3a://raw-data/postgres/raw_data/{tabela}/"
 
 df = spark.read.format("parquet").load(caminho)
 
 df = df.select(
-    col("cost").alias("custo"),
-    col("price").alias("preco"),
-    col("category").alias("categoria"),
-    col("supplier").alias("fornecedor"),
-    col("weight_kg").alias("peso_kg"),
-    col("created_at").cast("DATE"),
+    col("rating").alias("avaliacao"),
+    "order_id",
+    "review_id",
     "product_id",
-    col("updated_at").cast("DATE"),
-    col("product_name").alias("nome_produto"),
-    col("stock_quantity").alias("quantidade_em_estoque")
+    "customer_id",
+    col("review_date").cast("date").alias("dta_analise"),
+    col("review_text").alias("desc_analise"),
+    col("review_title").alias("titulo_analise"),
+    col("helpful_votes").alias("votos_uteis")
 )
 
-df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/bronze/products")
+df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/bronze/reviews")

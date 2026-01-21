@@ -1,8 +1,8 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, length, trim
+from pyspark.sql.functions import col
 
 spark = SparkSession.builder\
-        .appName("bronze products")\
+        .appName("ETL Bronze order items")\
         .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262") \
         .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:3900") \
         .config("spark.hadoop.fs.s3a.access.key", "GK092b24f828f48e9106904881") \
@@ -12,22 +12,19 @@ spark = SparkSession.builder\
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
         .getOrCreate()
 
-tabela = "products"
+tabela = "order_items"
 caminho = f"s3a://raw-data/postgres/raw_data/{tabela}/"
 
 df = spark.read.format("parquet").load(caminho)
 
 df = df.select(
-    col("cost").alias("custo"),
-    col("price").alias("preco"),
-    col("category").alias("categoria"),
-    col("supplier").alias("fornecedor"),
-    col("weight_kg").alias("peso_kg"),
-    col("created_at").cast("DATE"),
+    col("discount").alias("desconto"),
+    "order_id",
+    col("quantity").alias("quantidade"),
+    "subtotal",
     "product_id",
-    col("updated_at").cast("DATE"),
-    col("product_name").alias("nome_produto"),
-    col("stock_quantity").alias("quantidade_em_estoque")
+    col("unit_price").alias("preco_unitario"),
+    "order_item_id"
 )
 
-df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/bronze/products")
+df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/bronze/order_items")
