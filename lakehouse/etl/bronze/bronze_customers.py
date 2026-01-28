@@ -23,6 +23,7 @@ df = df.select(
     col("cpf"),
     col("city").alias("cidade"),
     "email",
+    "customer_id",
     col("phone").alias("tel"),
     col("state").alias("uf"),
     col("gender").alias("genero"),
@@ -39,6 +40,7 @@ df = df.withColumns({
     "new_cep": regexp_replace(col("cep"), "\-","")
     })
 df = df.select(
+    "customer_id",
     col("new_cpf").alias("cpf"),
     col("cidade"),
     "email",
@@ -52,4 +54,4 @@ df = df.select(
     col("nome")
 )
 
-df.write.mode("append").format("parquet").save("s3a://raw-data/postgres/bronze/customers")
+df.write.mode("overwrite").format("parquet").save("s3a://raw-data/postgres/bronze/customers")
