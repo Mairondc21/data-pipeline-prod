@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
-from pyspark.sql.functions import row_number, current_date, lit
+from pyspark.sql.functions import row_number, lit
 
 spark = SparkSession.builder\
         .appName("ETL Silver Dimensao Produto")\
@@ -26,6 +26,6 @@ df = df.withColumns({
     "flag_atual": lit(True)
 })
 
-df = df.withColumnRenamed("created_at", "dta_inicio_vigencia")
+df = df.withColumnRenamed("created_at", "dta_inicio_vigencia").drop("updated_at")
 
-df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/silver/dim_produto")
+df.write.format("parquet").mode("overwrite").save("s3a://raw-data/postgres/silver/dim_produto") 

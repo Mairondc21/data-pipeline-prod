@@ -27,6 +27,9 @@ df_estimativa_entrega = df.select(
 )
 
 df_union = df_order_date.union(df_estimativa_entrega).distinct()
+dim_produto = spark.read.format("parquet").load("s3a://raw-data/postgres/silver/dim_produto")
+
+dim_produto = dim_produto.select("dta_inicio_vigencia")
 
 window_spec = Window().orderBy("order_date")
 
@@ -41,5 +44,6 @@ df = df_union.withColumns({
     "dia_semana": date_format("order_date","E"),
     "flag_fim_semana": when(col("dia_semana").isin(["Sat","Sun"]),lit(True)).otherwise(lit(False))
 }).withColumnRenamed("order_date","data_completa")
+
 
 df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/silver/dim_data")

@@ -1,5 +1,5 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import upper, col
+from pyspark.sql import SparkSession, Window
+from pyspark.sql.functions import upper, col, sum as spark_sum, round, row_number
 
 spark = SparkSession.builder\
         .appName("Fato vendas")\
@@ -31,7 +31,8 @@ df_join_cliente = df_join_order.join(dim_cliente.where("flag_atual = true"), "cu
 df_join_produto = df_join_cliente.join(dim_produto.where("flag_atual = true"), "product_id", "left")\
                     .select(
                         *df_join_cliente,
-                        dim_produto.sk_produto
+                        dim_produto.sk_produto,
+                        dim_produto.custo
                     )
 df_join_endereco_entrega = df_join_produto.join(dim_endereco_entrega, "cep", "left")\
                             .select(
@@ -114,6 +115,25 @@ df_join_data_entrega = df_join_data_pedido.join(dim_data_entrega,
                                                  "preco_unitario",
                                                  "desconto",
                                                  "subtotal",
-                                                 "status"
+                                                 "status",
+                                                 "frete",
+                                                 "custo"
                                              )
-df_join_data_entrega.show()
+
+window_spec_sum = Window().partitionBy("order_id").orderBy("order_id")
+
+df_subtotal = df_join_data_entrega.withColumn("subtota_final", round(col("subtotal") + col("frete"),2))\
+                .drop("subtotal")\
+                .withColumnRenamed("subtota_final","subtotal")
+
+window_spec_sk_fato = Window().orderBy("sk_cliente")
+
+
+df = df_subtotal.withColumns({
+    "total": round(spark_sum("subtotal").over(window_spec_sum),2),
+    "margem_bruta": round(col("preco_unitario") - col("custo"),2),
+    "sk_vendas": row_number().over(window_spec_sk_fato)
+}).drop("custo")
+
+
+df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/silver/ft_vendas")
