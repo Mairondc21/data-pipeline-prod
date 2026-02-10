@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: external_source
+    meta:
+      external_location: 's3a://raw-data/postgres/silver/'
+    
+    tables:
+      - name: ft_vendas
+        meta:
+          external_location: 's3a://raw-data/postgres/silver/ft_vendas/*.parquet'
+      
+      - name: ft_avaliacoes
+        meta:
+          external_location: 's3a://raw-data/postgres/silver/ft_avaliacoes/*.parquet'
+      
+      - name: dim_produto
+        meta:
+          external_location: 's3a://raw-data/postgres/silver/dim_produto/*.parquet'

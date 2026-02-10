@@ -1,0 +1,19 @@
+gold_layer:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'gold_layer.duckdb'
+      
+      extensions:
+        - httpfs
+        - parquet
+      
+      settings:
+        s3_endpoint: 'localhost:3900'
+        s3_access_key_id: 'GK092b24f828f48e9106904881'
+        s3_secret_access_key: 'dcd93f148c32faca0074310ae16845b4f94b9a52f111d2ae07604ac12a8dd7f2'
+        s3_use_ssl: false
+        s3_url_style: 'path'
+        s3_region: 'us-east-1'
+      
