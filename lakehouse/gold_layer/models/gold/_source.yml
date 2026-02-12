@@ -14,6 +14,22 @@ sources:
         meta:
           external_location: 's3a://raw-data/postgres/silver/ft_avaliacoes/*.parquet'
       
+      - name: ft_estoque
+        meta:
+          external_location: 's3a://raw-data/postgres/silver/ft_estoque/*.parquet'
+      
+      - name: dim_endereco_entrega
+        meta:
+          external_location: 's3a://raw-data/postgres/silver/dim_endereco_entrega/*.parquet'
+      
       - name: dim_produto
         meta:
           external_location: 's3a://raw-data/postgres/silver/dim_produto/*.parquet'
+      
+      - name: dim_data
+        meta:
+          external_location: 's3a://raw-data/postgres/silver/dim_data/*.parquet'
+      
+      - name: dim_cliente
+        meta:
+          external_location: 's3a://raw-data/postgres/silver/dim_cliente/*.parquet'

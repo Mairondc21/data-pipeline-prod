@@ -1,14 +1,11 @@
 WITH cte_base AS (
     SELECT
-        sk_vendas,
         sk_produto,
         order_id,
         quantidade,
         preco_unitario,
         desconto,
-        frete,
         subtotal,
-        total,
         margem_bruta
     FROM
         {{ source('external_source','ft_vendas') }}
@@ -23,6 +20,7 @@ cte_dim_produto AS (
         custo
     FROM
         {{ source('external_source','dim_produto') }}
+    where flag_atual = True
 ),
 join_produto_base AS (
     SELECT
@@ -46,7 +44,7 @@ cte_agregacoes AS (
         SUM(quantidade) AS unidades_vendidas,
         ROUND(SUM(subtotal),2) AS receita_total,
         custo AS custo_unitario_atual,
-        preco_unitario,
+        preco_unitario as preco_unitario_atual,
         ROUND((quantidade * custo),2) AS custo_total_vendido,
         margem_bruta,
         ROUND(AVG(preco_unitario),2) AS preco_medio_vendido,
@@ -63,5 +61,17 @@ cte_agregacoes AS (
         custo_total_vendido,
         margem_bruta
 
+),
+cte_ranking AS (
+    SELECT
+        *,
+        ROUND(((receita_total - custo_total_vendido) / receita_total) * 100,2) AS margem_percentual,
+        RANK() OVER(ORDER BY receita_total DESC) AS ranking_receita,
+        RANK() OVER(ORDER BY unidades_vendidas DESC) AS ranking_volume
+    FROM
+        cte_agregacoes
 )
-SELECT product_id, qtd_pedidos, unidades_vendidas, receita_total, custo_total_vendido, preco_medio_vendido,desconto_medio_percentual  FROM cte_agregacoes order by product_id
+SELECT
+    *
+FROM
+    cte_ranking
