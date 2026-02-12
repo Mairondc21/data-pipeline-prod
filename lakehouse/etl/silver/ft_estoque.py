@@ -20,6 +20,7 @@ df = dim_produto.where("flag_atual = true").join(dim_data,
                       "inner").select(
                           "sk_produto",
                           "sk_date",
+                          "product_id",
                           "custo",
                           "preco",
                           "quantidade_em_estoque"
@@ -29,4 +30,4 @@ df = df.withColumns({
     "valor_total_estoque": spark_round(col("preco") * col("quantidade_em_estoque"),2)
 }).drop("custo","preco")
 
-df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/silver/ft_estoque")
+df.write.format("parquet").mode("overwrite").save("s3a://raw-data/postgres/silver/ft_estoque")
