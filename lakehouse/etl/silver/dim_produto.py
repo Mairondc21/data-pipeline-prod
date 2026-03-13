@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
+from pyspark.sql.types import StructType, StructField, StringType, DoubleType, DateType, LongType
 from pyspark.sql.functions import row_number, lit
 
 spark = SparkSession.builder\
@@ -16,7 +17,20 @@ spark = SparkSession.builder\
 tabela = "products"
 caminho = f"s3a://raw-data/postgres/bronze/{tabela}/"
 
-df = spark.read.format("parquet").load(caminho)
+_schema = StructType([
+    StructField("custo", DoubleType(), False),
+    StructField("preco", DoubleType(), False),
+    StructField("categoria", StringType(), False),
+    StructField("fornecedor", StringType(), True),
+    StructField("peso_kg", DoubleType(), False),
+    StructField("created_at", DateType(), False),
+    StructField("product_id", LongType(), False),
+    StructField("updated_at", DateType(), False),
+    StructField("nome_produto", StringType(), False),
+    StructField("quantidade_em_estoque", LongType(), False)
+])
+
+df = spark.read.format("parquet").schema(_schema).load(caminho)
 
 window_spec = Window().orderBy("nome_produto")
 
@@ -28,4 +42,4 @@ df = df.withColumns({
 
 df = df.withColumnRenamed("created_at", "dta_inicio_vigencia").drop("updated_at")
 
-df.write.format("parquet").mode("overwrite").save("s3a://raw-data/postgres/silver/dim_produto") 
+df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/silver/dim_produto") 

@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession, Window
+from pyspark.sql.types import StructType, StructField, StringType
 from pyspark.sql.functions import row_number, when, upper, col
 
 spark = SparkSession.builder\
@@ -15,7 +16,11 @@ spark = SparkSession.builder\
 tabela = 'orders'
 caminho = f"s3a://raw-data/postgres/bronze/{tabela}/"
 
-df = spark.read.format("parquet").load(caminho)
+_schema = StructType([
+    StructField("tipo_pagamento", StringType(), True)
+])
+
+df = spark.read.format("parquet").schema(_schema).load(caminho)
 
 window_spec = Window().orderBy("tipo_pagamento")
 df = df.select(
@@ -31,6 +36,5 @@ df = df.withColumns({
                            .when(col("tipo_pagamento") == 'PIX', 'Pagamento feito com a chave aleatoria')
                            .otherwise("Pagamento invalido")
 })
-
 
 df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/silver/dim_pagamento")

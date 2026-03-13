@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
+from pyspark.sql.types import StructField, StringType,StructType
 from pyspark.sql.functions import row_number
 spark = SparkSession.builder\
         .appName("Dimensao Endereco de entrega")\
@@ -15,7 +16,14 @@ spark = SparkSession.builder\
 tabela = 'orders'
 caminho = f"s3a://raw-data/postgres/bronze/{tabela}/"
 
-df = spark.read.format("parquet").load(caminho)
+_schema = StructType([
+    StructField("cidade_envio", StringType(), True),
+    StructField("estado_envio", StringType(), True),
+    StructField("endereco_envio", StringType(), False),
+    StructField("cep", StringType(), False)
+])
+
+df = spark.read.format("parquet").schema(_schema).load(caminho)
 
 window_spec = Window().orderBy("cep")
 

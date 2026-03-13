@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import row_number, current_date, lit
+from pyspark.sql.types import StructField, StringType, StructType, DateType, LongType
 from pyspark.sql.window import Window
 
 spark = SparkSession.builder\
@@ -16,7 +17,22 @@ spark = SparkSession.builder\
 tabela = "customers"
 caminho = f"s3a://raw-data/postgres/bronze/{tabela}/"
 
-df = spark.read.format("parquet").load(caminho)
+_schema = StructType([
+    StructField("customer_id", LongType(), False),
+    StructField("cpf", StringType(), False),
+    StructField("cidade", StringType(), True),
+    StructField("email", StringType(), False),
+    StructField("tel", StringType(), True),
+    StructField("uf", StringType(), True),
+    StructField("genero", StringType(), False),
+    StructField("endereco", StringType(), False),
+    StructField("cep", StringType(), False),
+    StructField("sobrenome", StringType(), True),
+    StructField("dta_nas", DateType(), False),
+    StructField("nome", StringType(), False)
+])
+
+df = spark.read.format("parquet").schema(_schema).load(caminho)
 
 window_spec = Window.partitionBy(lit(1)).orderBy(lit(1))
 
@@ -26,6 +42,5 @@ df = df.withColumns({
     "dta_fim_vigencia": lit("1900-01-01"),
     "flag_atual": lit(True)
     })
-
 
 df.write.format("parquet").mode("append").save("s3a://raw-data/postgres/silver/dim_cliente")
