@@ -1,0 +1,27 @@
+version: "3.1"
+services:
+  scheduler:
+    ports:
+      - "4040:4040"
+    volumes:
+      - ./.env:/usr/local/airflow/.env
+    networks:
+      - kind
+
+  triggerer:
+    volumes:
+      - ./.env:/usr/local/airflow/.env
+    networks:
+      - kind
+
+  postgres:
+    networks:
+      - kind
+
+networks:
+  default:
+    name: kind
+    external: true
+  kind:
+    name: kind
+    external: true
